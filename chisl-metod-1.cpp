@@ -142,7 +142,7 @@ void task_2() {
 		result.push_back(Lagrange(xValues, yValues, xValues[i], n0 - 1));
 	}
 	for (int i = 0; i < n0; i++) {
-		std::cout << xValues[i] << "\t" << yValues[i]  << "\t" << result[i] << std::endl;
+		//std::cout << xValues[i] << "\t" << yValues[i]  << "\t" << result[i] << std::endl;
 	}
 
 	double N = 100'000;
@@ -217,7 +217,7 @@ int main()
 {
 		int c = -1;
 		while (c != 0) {
-			cout << "enter number for task, 0 for exit" << endl;
+			cout << "enter number for task(1,2,3), 0 for exit" << endl;
 			cin >> c;
 			switch (c) {
 			case 1:
