@@ -212,6 +212,125 @@ void task_3() {
 	out3.close();
 }
 
+#pragma endregion
+#pragma region TASK6
+
+double secondDerrivative(double x) {
+	return (-4 * sin(x) - 4 * x * cos(x)) * sin(2 * x) + (2 * cos(x) - 5 * x * sin(x)) * cos(2 * x);
+}
+
+
+std::vector<double> TridiagonalSolve(int n, std::vector<double>& a, std::vector<double>& c, std::vector<double>& b, std::vector<double>& f)
+{
+	std::vector<double> x(n);
+	double m;
+	for (int i = 1; i < n; i++)
+	{
+		m = a[i] / c[i - 1];
+		c[i] = c[i] - m * b[i - 1];
+		f[i] = f[i] - m * f[i - 1];
+	}
+
+	x[n - 1] = f[n - 1] / c[n - 1];
+
+	for (int i = n - 2; i >= 0; i--)
+		x[i] = (f[i] - b[i] * x[i + 1]) / c[i];
+	return x;
+
+}
+double Spline(std::vector<double>& a, std::vector<double>& b, std::vector<double>& c, std::vector<double>& d, double x, double xi, double i) {
+	return(a[i] + b[i] * (x - xi) + c[i] * pow(x - xi, 2) + d[i] * pow(x - xi, 3));
+}
+void task_6() {
+
+	std::ofstream out6("task_6_out.txt");
+	for (int N = 10; N < 1000; N++) {
+		std::vector<double> xValues;
+		std::vector<double> yValues;
+		std::vector<double> result;
+		for (double i = 0; i < N; i++) {
+			xValues.push_back(chebyshevNode(i, N));
+			yValues.push_back(function(xValues[i]));
+		}
+
+		std::reverse(xValues.begin(), xValues.end());
+		std::reverse(yValues.begin(), yValues.end());
+
+		std::vector<std::vector<double>> matrix(N);
+		std::vector<double> diag(N);
+		std::vector<double> lower(N - 1);
+		std::vector<double> upper(N - 1);
+		//свеободные члены
+		std::vector<double> r(N);
+		//вектор ответа
+		std::vector<double> c(N);
+
+
+		std::vector<double> b(N);
+		for (int i = 0; i < N; i++) {
+			matrix[i].resize(N);
+			for (int k = 0; k < N; k++) {
+				matrix[i][k] = 0;
+			}
+		}
+		diag[0] = 1; diag[N - 1] = 1;
+		lower[0] = 0; lower[N - 2] = 0;
+		upper[0] = 0; upper[N - 2] = 0;
+		for (int i = 1; i < N - 1; i++) {
+			diag[i] = 2 * (xValues[i + 1] - xValues[i - 1]);
+			if (i < N - 2) {
+				lower[i] = xValues[i] - xValues[i - 1];
+				upper[i] = xValues[i + 1] - xValues[i];
+				r[i] = 3 * ((yValues[i + 1] - yValues[i]) / xValues[i + 1] - (yValues[i] - yValues[i - 1]) / xValues[i]);
+			}
+		}
+
+		c = TridiagonalSolve(N - 1, lower, diag, upper, r);
+
+		/*for (auto v : c) {
+			std::cout << std::fixed << std::setprecision(10) << v << std::endl;
+		}*/
+		std::vector<double> a(N, 0);
+		std::vector<double> d(N, 0);
+		for (int i = 1; i < N - 1; i++) {
+			a[i] = yValues[i];
+			d[i] = (c[i] - c[i - 1]) / (3 * (xValues[i] - xValues[i - 1]));
+			b[i] = (a[i] - a[i - 1]) / (xValues[i] - xValues[i - 1]) + (2 * c[i] + c[i - 1]) / 3 * (xValues[i] - xValues[i - 1]);
+		}
+		double Count = 10000;
+		result.resize(0);
+
+		double delta = -10000;
+
+		double step = abs(xValues[0] - xValues[N - 1]) / Count;
+		for (int i = 1; i < N - 1; i++) {
+
+			for (double start = xValues[i - 1]; start < xValues[i]; start += step) {
+				double temp1 = function(start);
+				double temp2 = Spline(a, b, c, d, start, xValues[i], i);
+				double error = abs(temp1 - temp2);
+				delta = max(delta, error);
+				//std::cout << error << std::endl;
+				result.push_back(error);
+
+			}
+
+		}
+		if (delta < 1e-5) {
+			std::cout << "Required number of grid nodes : " << N << std::endl;
+			std::reverse(result.begin(), result.end());
+			for (auto n : result)
+				out6 << std::fixed << std::setprecision(10) << n << std::endl;
+			break;
+		}
+	}
+
+	out6.close();
+
+
+
+}
+#pragma endregion
 
 int main()
 {
@@ -228,6 +347,9 @@ int main()
 				break;
 			case 3:
 				task_3();
+				break;
+			case 6:
+				task_6();
 				break;
 			default:
 				break;
